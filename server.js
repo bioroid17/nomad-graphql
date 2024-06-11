@@ -1,16 +1,20 @@
 import { ApolloServer, gql } from "apollo-server";
 
+// 가짜 DB
 let tweets = [
   {
     id: "1",
     text: "First one",
+    userId: "2",
   },
   {
     id: "2",
     text: "Second one",
+    userId: "1",
   },
 ];
 
+// 가짜 DB
 let users = [
   {
     id: "1",
@@ -48,6 +52,7 @@ const typeDefs = gql`
 `;
 
 const resolvers = {
+  // Query resolver
   Query: {
     allTweets() {
       return tweets;
@@ -60,12 +65,18 @@ const resolvers = {
       return users;
     },
   },
+  // Mutation resolver
   Mutation: {
     postTweet(_, { text, userId }) {
       const newTweet = {
         id: tweets.length + 1,
         text,
+        userId,
       };
+      const user = users.find((user) => user.id === userId);
+      if (!user) {
+        return null;
+      }
       tweets.push(newTweet);
       return newTweet;
     },
@@ -76,9 +87,24 @@ const resolvers = {
       return true;
     },
   },
+  // Type resolver
   User: {
+    firstName({ firstName }) {
+      return firstName;
+    },
     fullName({ firstName, lastName }) {
       return `${firstName} ${lastName}`;
+    },
+  },
+  // Type resolver
+  Tweet: {
+    author({ userId }) {
+      // user와 tweet을 join
+      const user = users.find((user) => user.id === userId);
+      if (!user) {
+        return null;
+      }
+      return user;
     },
   },
 };
